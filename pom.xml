@@ -19,6 +19,12 @@
     <developers>
         <developer/>
     </developers>
+    <modules>
+        <module>project</module>
+        <module>gateway</module>
+        <module>admin</module>
+        <module>base</module>
+    </modules>
 
     <scm>
         <connection/>
@@ -119,6 +125,17 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
