@@ -1,11 +1,9 @@
 package github.lukingyu.shortlink.base.entity.dto.resp;
 
-import github.lukingyu.shortlink.base.serialize.PhoneDesensitizationSerializer;
 import lombok.Data;
-import tools.jackson.databind.annotation.JsonSerialize;
 
 @Data
-public class UserRespDTO {
+public class UserActualRespDTO {
 
     /**
      * id
@@ -25,7 +23,6 @@ public class UserRespDTO {
     /**
      * 手机号
      */
-    @JsonSerialize(using = PhoneDesensitizationSerializer.class)
     private String phone;
 
     /**
