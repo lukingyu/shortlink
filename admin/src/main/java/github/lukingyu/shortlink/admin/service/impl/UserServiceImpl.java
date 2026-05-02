@@ -1,19 +1,27 @@
 package github.lukingyu.shortlink.admin.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import github.lukingyu.shortlink.admin.mapper.UserMapper;
 import github.lukingyu.shortlink.admin.service.UserService;
+import github.lukingyu.shortlink.base.entity.dto.req.UserRegisterReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.UserRespDTO;
 import github.lukingyu.shortlink.base.entity.enums.UserErrorCodeEnum;
 import github.lukingyu.shortlink.base.entity.exception.ClientException;
+import github.lukingyu.shortlink.base.entity.exception.ServiceException;
 import github.lukingyu.shortlink.base.entity.table.UserDO;
+import lombok.RequiredArgsConstructor;
+import org.redisson.api.RBloomFilter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements UserService {
+
+    private final RBloomFilter<String> userRegisterCachePenetrationBloomFilter;
 
     @Override
     public UserRespDTO getUserByUsername(String username) {
@@ -26,5 +34,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         UserRespDTO result = new UserRespDTO();
         BeanUtils.copyProperties(userDO, result);
         return result;
+    }
+
+    @Override
+    public Boolean hasUsername(String username) {
+        return userRegisterCachePenetrationBloomFilter.contains(username);
+    }
+
+    @Override
+    public void register(UserRegisterReqDTO requestParam) {
+        // 如果布隆过滤器存在此用户名，则抛出异常
+        if (hasUsername(requestParam.getUsername())) {
+            throw new ClientException(UserErrorCodeEnum.USER_NAME_EXIST);
+        }
+        // 用户名可用
+        int insert = baseMapper.insert(BeanUtil.toBean(requestParam, UserDO.class));
+        // 数据库插入失败
+        if (insert <= 0) {
+            throw new ServiceException(UserErrorCodeEnum.USER_SAVE_ERROR);
+        }
+        // 数据库插入成功，向布隆过滤器记录此用户名
+        userRegisterCachePenetrationBloomFilter.add(requestParam.getUsername());
     }
 }
