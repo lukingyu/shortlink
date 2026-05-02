@@ -27,6 +27,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
                 .name(groupName)
                 // TODO 用户名
                 .username(null)
+                .sortOrder(0)
                 .build();
         baseMapper.insert(groupDO);
     }
