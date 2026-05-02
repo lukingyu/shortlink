@@ -7,6 +7,7 @@ dataSources:
     password: root
 
 rules:
+  # 数据分片规则
   - !SHARDING
     tables:
       t_user:
@@ -20,5 +21,22 @@ rules:
         type: HASH_MOD
         props:
           sharding-count: 16
+  # 数据加密存储规则
+  - !ENCRYPT
+    tables:
+      t_user:
+        columns:
+          phone:
+            cipherColumn: phone              # 密文字段，存储加密后的数据。意味着数据直接在原字段上加密存储（没有单独的明文列）
+            encryptorName: common_encryptor
+          mail:
+            cipherColumn: mail
+            encryptorName: common_encryptor
+        queryWithCipherColumn: true          # 查询时也用密文列匹配
+    encryptors:
+      common_encryptor:
+        type: AES                             # AES 对称加密算法
+        props:
+          aes-key-value: d6oadClrrb9A3GWo     # 128-bit AES 密钥
 props:
   sql-show: true
