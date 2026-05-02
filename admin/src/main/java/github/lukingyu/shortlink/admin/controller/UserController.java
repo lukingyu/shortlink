@@ -3,6 +3,7 @@ package github.lukingyu.shortlink.admin.controller;
 import cn.hutool.core.bean.BeanUtil;
 import github.lukingyu.shortlink.admin.service.UserService;
 import github.lukingyu.shortlink.base.entity.dto.req.UserRegisterReqDTO;
+import github.lukingyu.shortlink.base.entity.dto.req.UserUpdateReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.UserActualRespDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.UserRespDTO;
 import github.lukingyu.shortlink.base.entity.result.Result;
@@ -46,6 +47,15 @@ public class UserController {
     @PostMapping("/api/short-link/v1/user")
     public Result<Void> register(@RequestBody UserRegisterReqDTO requestParam) {
         userService.register(requestParam);
+        return Results.success();
+    }
+
+    /**
+     * 修改用户
+     */
+    @PutMapping("/api/short-link/v1/user")
+    public Result<Void> update(@RequestBody UserUpdateReqDTO requestParam) {
+        userService.update(requestParam);
         return Results.success();
     }
 }

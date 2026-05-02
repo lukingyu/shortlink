@@ -2,12 +2,14 @@ package github.lukingyu.shortlink.admin.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import github.lukingyu.shortlink.admin.mapper.UserMapper;
 import github.lukingyu.shortlink.admin.service.UserService;
 import github.lukingyu.shortlink.base.constant.RedisCacheConstant;
 import github.lukingyu.shortlink.base.entity.dto.req.UserRegisterReqDTO;
+import github.lukingyu.shortlink.base.entity.dto.req.UserUpdateReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.UserRespDTO;
 import github.lukingyu.shortlink.base.entity.enums.UserErrorCodeEnum;
 import github.lukingyu.shortlink.base.entity.exception.ClientException;
@@ -73,5 +75,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             lock.unlock();
         }
 
+    }
+
+    @Override
+    public void update(UserUpdateReqDTO requestParam) {
+        // TODO 验证当前用户名是否为登录用户
+        LambdaUpdateWrapper<UserDO> updateWrapper = Wrappers.lambdaUpdate(UserDO.class)
+                .eq(UserDO::getUsername, requestParam.getUsername());
+        baseMapper.update(BeanUtil.toBean(requestParam, UserDO.class), updateWrapper);
     }
 }

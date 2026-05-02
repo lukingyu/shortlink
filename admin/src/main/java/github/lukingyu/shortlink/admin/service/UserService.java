@@ -2,6 +2,7 @@ package github.lukingyu.shortlink.admin.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import github.lukingyu.shortlink.base.entity.dto.req.UserRegisterReqDTO;
+import github.lukingyu.shortlink.base.entity.dto.req.UserUpdateReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.UserRespDTO;
 import github.lukingyu.shortlink.base.entity.table.UserDO;
 
@@ -29,4 +30,11 @@ public interface UserService extends IService<UserDO> {
      * @param requestParam 注册用户请求参数
      */
     void register(UserRegisterReqDTO requestParam);
+
+    /**
+     * 根据用户名修改用户
+     *
+     * @param requestParam 修改用户请求参数
+     */
+    void update(UserUpdateReqDTO requestParam);
 }
