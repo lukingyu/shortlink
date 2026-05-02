@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import github.lukingyu.shortlink.admin.mapper.UserMapper;
 import github.lukingyu.shortlink.admin.service.UserService;
+import github.lukingyu.shortlink.base.constant.RedisCacheConstant;
 import github.lukingyu.shortlink.base.entity.dto.req.UserRegisterReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.UserRespDTO;
 import github.lukingyu.shortlink.base.entity.enums.UserErrorCodeEnum;
@@ -14,6 +15,8 @@ import github.lukingyu.shortlink.base.entity.exception.ServiceException;
 import github.lukingyu.shortlink.base.entity.table.UserDO;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RBloomFilter;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +25,7 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements UserService {
 
     private final RBloomFilter<String> userRegisterCachePenetrationBloomFilter;
+    private final RedissonClient redissonClient;
 
     @Override
     public UserRespDTO getUserByUsername(String username) {
@@ -47,13 +51,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         if (hasUsername(requestParam.getUsername())) {
             throw new ClientException(UserErrorCodeEnum.USER_NAME_EXIST);
         }
-        // 用户名可用
-        int insert = baseMapper.insert(BeanUtil.toBean(requestParam, UserDO.class));
-        // 数据库插入失败
-        if (insert <= 0) {
-            throw new ServiceException(UserErrorCodeEnum.USER_SAVE_ERROR);
+
+        // 加 分布式锁，防止高并发下同时注册一个不存在的用户名
+        RLock lock = redissonClient.getLock(RedisCacheConstant.LOCK_USER_REGISTER_KEY + requestParam.getUsername());
+
+        try {
+            if (lock.tryLock()) {
+                // 用户名可用
+                int insert = baseMapper.insert(BeanUtil.toBean(requestParam, UserDO.class));
+                // 数据库插入失败
+                if (insert <= 0) {
+                    throw new ServiceException(UserErrorCodeEnum.USER_SAVE_ERROR);
+                }
+                // 数据库插入成功，向布隆过滤器记录此用户名
+                userRegisterCachePenetrationBloomFilter.add(requestParam.getUsername());
+            } else {
+                // 获取锁失败，说明有其他线程正在注册此用户名，抛出异常
+                throw new ClientException(UserErrorCodeEnum.USER_NAME_EXIST);
+            }
+        } finally {
+            lock.unlock();
         }
-        // 数据库插入成功，向布隆过滤器记录此用户名
-        userRegisterCachePenetrationBloomFilter.add(requestParam.getUsername());
+
     }
 }
