@@ -2,9 +2,11 @@ package github.lukingyu.shortlink.admin.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import github.lukingyu.shortlink.admin.service.UserService;
+import github.lukingyu.shortlink.base.entity.dto.req.UserLoginReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.req.UserRegisterReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.req.UserUpdateReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.UserActualRespDTO;
+import github.lukingyu.shortlink.base.entity.dto.resp.UserLoginRespDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.UserRespDTO;
 import github.lukingyu.shortlink.base.entity.result.Result;
 import github.lukingyu.shortlink.base.entity.result.Results;
@@ -57,5 +59,21 @@ public class UserController {
     public Result<Void> update(@RequestBody UserUpdateReqDTO requestParam) {
         userService.update(requestParam);
         return Results.success();
+    }
+
+    /**
+     * 用户登录
+     */
+    @PostMapping("/api/short-link/v1/user/login")
+    public Result<UserLoginRespDTO> login(@RequestBody UserLoginReqDTO requestParam) {
+        return Results.success(userService.login(requestParam));
+    }
+
+    /**
+     * 检查用户是否登录
+     */
+    @GetMapping("/api/short-link/v1/user/check-login")
+    public Result<Boolean> checkLogin(@RequestParam("username") String username, @RequestParam("token") String token) {
+        return Results.success(userService.checkLogin(username, token));
     }
 }
