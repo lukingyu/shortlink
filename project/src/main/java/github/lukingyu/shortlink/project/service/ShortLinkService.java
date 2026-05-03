@@ -3,10 +3,13 @@ package github.lukingyu.shortlink.project.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkPageReqDTO;
+import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkPageRespDTO;
 import github.lukingyu.shortlink.base.entity.table.ShortLinkDO;
 import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkCreateReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkCreateRespDTO;
+
+import java.util.List;
 
 public interface ShortLinkService extends IService<ShortLinkDO> {
 
@@ -25,4 +28,12 @@ public interface ShortLinkService extends IService<ShortLinkDO> {
      * @return 短链接分页返回结果
      */
     IPage<ShortLinkPageRespDTO> pageShortLink(ShortLinkPageReqDTO requestParam);
+
+    /**
+     * 查询短链接分组内数量
+     *
+     * @param requestParam 查询短链接分组内数量请求参数
+     * @return 查询短链接分组内数量响应
+     */
+    List<ShortLinkGroupCountQueryRespDTO> listGroupShortLinkCount(List<String> requestParam);
 }

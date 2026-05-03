@@ -1,7 +1,7 @@
 package github.lukingyu.shortlink.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import github.lukingyu.shortlink.admin.remote.ShortLinkRemoteService;
+import github.lukingyu.shortlink.base.remote.ShortLinkRemoteService;
 import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkCreateReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkPageReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkCreateRespDTO;
