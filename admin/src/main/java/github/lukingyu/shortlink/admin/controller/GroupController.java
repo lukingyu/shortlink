@@ -1,6 +1,7 @@
 package github.lukingyu.shortlink.admin.controller;
 
 import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkGroupSaveReqDTO;
+import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkGroupSortReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkGroupUpdateReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkGroupRespDTO;
 import github.lukingyu.shortlink.base.entity.result.Result;
@@ -49,6 +50,15 @@ public class GroupController {
     @DeleteMapping("/api/short-link/v1/group")
     public Result<Void> updateGroup(@RequestParam String gid) {
         groupService.deleteGroup(gid);
+        return Results.success();
+    }
+
+    /**
+     * 修改短链接分组顺序
+     */
+    @PostMapping("/api/short-link/v1/group/sort")
+    public Result<Void> sortGroup(@RequestBody List<ShortLinkGroupSortReqDTO> requestParam) {
+        groupService.sortGroup(requestParam);
         return Results.success();
     }
 }

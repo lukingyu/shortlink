@@ -1,6 +1,7 @@
 package github.lukingyu.shortlink.base.mvc.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkGroupSortReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkGroupUpdateReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkGroupRespDTO;
 import github.lukingyu.shortlink.base.entity.table.GroupDO;
@@ -36,4 +37,11 @@ public interface GroupService extends IService<GroupDO> {
      * @param gid 短链接分组标识
      */
     void deleteGroup(String gid);
+
+    /**
+     * 修改短链接分组顺序
+     *
+     * @param requestParam 短链接分组排序参数
+     */
+    void sortGroup(List<ShortLinkGroupSortReqDTO> requestParam);
 }
