@@ -1,4 +1,4 @@
-package github.lukingyu.shortlink.project.entity.dto.resp;
+package github.lukingyu.shortlink.base.entity.dto.resp;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -5,8 +5,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkPageReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkPageRespDTO;
 import github.lukingyu.shortlink.base.entity.table.ShortLinkDO;
-import github.lukingyu.shortlink.project.entity.dto.req.ShortLinkCreateReqDTO;
-import github.lukingyu.shortlink.project.entity.dto.resp.ShortLinkCreateRespDTO;
+import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkCreateReqDTO;
+import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkCreateRespDTO;
 
 public interface ShortLinkService extends IService<ShortLinkDO> {
 

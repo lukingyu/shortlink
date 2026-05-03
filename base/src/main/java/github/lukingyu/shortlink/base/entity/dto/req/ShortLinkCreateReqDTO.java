@@ -1,4 +1,4 @@
-package github.lukingyu.shortlink.project.entity.dto.req;
+package github.lukingyu.shortlink.base.entity.dto.req;
 
 import lombok.Data;
 
