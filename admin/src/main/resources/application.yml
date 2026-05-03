@@ -5,7 +5,7 @@ spring:
   application:
     name: shortlink-admin
   datasource:
-    url: jdbc:shardingsphere:classpath:shardingsphere-config.yml
+    url: jdbc:shardingsphere:classpath:shardingsphere-config-${database.env:dev}.yml
     driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
 
   data:
