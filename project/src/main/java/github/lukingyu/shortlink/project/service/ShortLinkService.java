@@ -9,7 +9,10 @@ import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkPageRespDTO;
 import github.lukingyu.shortlink.base.entity.table.ShortLinkDO;
 import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkCreateReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkCreateRespDTO;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface ShortLinkService extends IService<ShortLinkDO> {
@@ -44,4 +47,13 @@ public interface ShortLinkService extends IService<ShortLinkDO> {
      * @param requestParam 修改短链接请求参数
      */
     void updateShortLink(ShortLinkUpdateReqDTO requestParam);
+
+    /**
+     * 短链接跳转
+     *
+     * @param shortUri 短链接后缀
+     * @param request  HTTP 请求
+     * @param response HTTP 响应
+     */
+    void redirect(String shortUri, ServletRequest request, ServletResponse response) throws IOException;
 }

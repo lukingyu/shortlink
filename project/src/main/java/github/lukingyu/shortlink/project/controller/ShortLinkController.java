@@ -10,9 +10,12 @@ import github.lukingyu.shortlink.base.entity.result.Results;
 import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkCreateReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkCreateRespDTO;
 import github.lukingyu.shortlink.project.service.ShortLinkService;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -51,6 +54,15 @@ public class ShortLinkController {
     @PutMapping("/api/short-link/v1/update")
     public Result<Void> updateShortLink(@RequestBody ShortLinkUpdateReqDTO requestParam) {
         shortLinkService.updateShortLink(requestParam);
+        return Results.success();
+    }
+
+    /**
+     * 短链接跳转
+     */
+    @GetMapping("/{short-uri}")
+    public Result<Void> redirect(@PathVariable("short-uri") String shortUri, ServletRequest request, ServletResponse response) throws IOException {
+        shortLinkService.redirect(shortUri, request, response);
         return Results.success();
     }
 }
