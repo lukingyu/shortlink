@@ -3,6 +3,7 @@ package github.lukingyu.shortlink.admin.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import github.lukingyu.shortlink.admin.service.RecycleBinService;
 import github.lukingyu.shortlink.base.entity.dto.req.RecycleBinRecoverReqDTO;
+import github.lukingyu.shortlink.base.entity.dto.req.RecycleBinRemoveReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.req.RecycleBinSaveReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkRecycleBinPageReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkPageRespDTO;
@@ -50,6 +51,15 @@ public class RecycleBinController {
     @PostMapping("/api/short-link/admin/v1/recycle-bin/recover")
     public Result<Void> recoverRecycleBin(@RequestBody RecycleBinRecoverReqDTO requestParam) {
         shortLinkRemoteService.recoverRecycleBin(requestParam);
+        return Results.success();
+    }
+
+    /**
+     * 移除短链接
+     */
+    @PostMapping("/api/short-link/admin/v1/recycle-bin/remove")
+    public Result<Void> removeRecycleBin(@RequestBody RecycleBinRemoveReqDTO requestParam) {
+        shortLinkRemoteService.removeRecycleBin(requestParam);
         return Results.success();
     }
 }
