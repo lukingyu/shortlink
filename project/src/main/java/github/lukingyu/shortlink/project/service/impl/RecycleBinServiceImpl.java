@@ -1,10 +1,15 @@
 package github.lukingyu.shortlink.project.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import github.lukingyu.shortlink.base.constant.RedisCacheConstant;
 import github.lukingyu.shortlink.base.entity.dto.req.RecycleBinSaveReqDTO;
+import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkPageReqDTO;
+import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkPageRespDTO;
 import github.lukingyu.shortlink.base.entity.table.ShortLinkDO;
 import github.lukingyu.shortlink.project.mapper.ShortLinkMapper;
 import github.lukingyu.shortlink.project.service.RecycleBinService;
@@ -31,5 +36,20 @@ public class RecycleBinServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLin
                 .build();
         baseMapper.update(shortLinkDO, updateWrapper);
         stringRedisTemplate.delete(String.format(RedisCacheConstant.SHORT_LINK_GOTO_KEY, requestParam.getFullShortUrl()));
+    }
+
+    @Override
+    public IPage<ShortLinkPageRespDTO> pageShortLink(ShortLinkPageReqDTO requestParam) {
+        LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class)
+                .eq(ShortLinkDO::getGid, requestParam.getGid())
+                .eq(ShortLinkDO::getEnableStatus, 1)
+                .eq(ShortLinkDO::getDelFlag, 0)
+                .orderByDesc(ShortLinkDO::getCreateTime);
+        IPage<ShortLinkDO> resultPage = baseMapper.selectPage(requestParam, queryWrapper);
+        return resultPage.convert(each -> {
+            ShortLinkPageRespDTO result = BeanUtil.toBean(each, ShortLinkPageRespDTO.class);
+            result.setDomain("http://" + result.getDomain());
+            return result;
+        });
     }
 }

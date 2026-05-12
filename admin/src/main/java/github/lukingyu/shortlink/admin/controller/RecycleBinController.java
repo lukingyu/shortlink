@@ -1,10 +1,14 @@
 package github.lukingyu.shortlink.admin.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import github.lukingyu.shortlink.base.entity.dto.req.RecycleBinSaveReqDTO;
+import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkPageReqDTO;
+import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkPageRespDTO;
 import github.lukingyu.shortlink.base.entity.result.Result;
 import github.lukingyu.shortlink.base.entity.result.Results;
 import github.lukingyu.shortlink.base.remote.ShortLinkRemoteService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,5 +30,13 @@ public class RecycleBinController {
     public Result<Void> saveRecycleBin(@RequestBody RecycleBinSaveReqDTO requestParam) {
         shortLinkRemoteService.saveRecycleBin(requestParam);
         return Results.success();
+    }
+
+    /**
+     * 分页查询回收站短链接
+     */
+    @GetMapping("/api/short-link/admin/v1/recycle-bin/page")
+    public Result<IPage<ShortLinkPageRespDTO>> pageShortLink(ShortLinkPageReqDTO requestParam) {
+        return shortLinkRemoteService.pageRecycleBinShortLink(requestParam);
     }
 }
