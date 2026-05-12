@@ -21,6 +21,7 @@ import github.lukingyu.shortlink.base.entity.table.ShortLinkGotoDO;
 import github.lukingyu.shortlink.base.tool.HashUtil;
 import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkCreateReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkCreateRespDTO;
+import github.lukingyu.shortlink.base.tool.LinkUtil;
 import github.lukingyu.shortlink.project.mapper.ShortLinkGotoMapper;
 import github.lukingyu.shortlink.project.mapper.ShortLinkMapper;
 import github.lukingyu.shortlink.project.service.ShortLinkService;
@@ -39,6 +40,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -92,6 +94,12 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         }
         // 当前线程插入成功，将 此后缀放入布隆过滤器，代表此后缀已被使用
         shortUriCreateCachePenetrationBloomFilter.add(shortLinkSuffix);
+        // 缓存跳转关系
+        stringRedisTemplate.opsForValue().set(
+                String.format(RedisCacheConstant.SHORT_LINK_GOTO_KEY, fullShortUrl),
+                requestParam.getOriginUrl(),
+                LinkUtil.getRestMilliSeconds(requestParam.getValidDate()),
+                TimeUnit.MILLISECONDS);
         return ShortLinkCreateRespDTO.builder()
                 .fullShortUrl("http://" + shortLinkDO.getFullShortUrl())
                 .originUrl(requestParam.getOriginUrl())
@@ -211,8 +219,13 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                     .eq(ShortLinkDO::getEnableStatus, 0);
             ShortLinkDO shortLinkDO = baseMapper.selectOne(queryWrapper);
             if (shortLinkDO != null) {
+                // 如果已经过期，缓存空值
+                if (shortLinkDO.getValidDate() != null && shortLinkDO.getValidDate().before(new Date())) {
+                    stringRedisTemplate.opsForValue().set(String.format(RedisCacheConstant.SHORT_LINK_NULL_GOTO_KEY, fullShortUrl), "-", 3, TimeUnit.MINUTES);
+                    return;
+                }
                 // 将跳转关系 放入缓存
-                stringRedisTemplate.opsForValue().set(String.format(RedisCacheConstant.SHORT_LINK_GOTO_KEY, fullShortUrl), shortLinkDO.getOriginUrl());
+                stringRedisTemplate.opsForValue().set(String.format(RedisCacheConstant.SHORT_LINK_GOTO_KEY, fullShortUrl), shortLinkDO.getOriginUrl(), LinkUtil.getRestMilliSeconds(shortLinkDO.getValidDate()), TimeUnit.MILLISECONDS);
                 // 重定向
                 ((HttpServletResponse) response).sendRedirect(shortLinkDO.getOriginUrl());
             }
