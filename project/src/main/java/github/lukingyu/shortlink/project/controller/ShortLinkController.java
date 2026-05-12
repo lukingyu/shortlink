@@ -2,6 +2,7 @@ package github.lukingyu.shortlink.project.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkPageReqDTO;
+import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkUpdateReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkPageRespDTO;
 import github.lukingyu.shortlink.base.entity.result.Result;
@@ -42,5 +43,14 @@ public class ShortLinkController {
     @GetMapping("/api/short-link/v1/count")
     public Result<List<ShortLinkGroupCountQueryRespDTO>> listGroupShortLinkCount(@RequestParam("requestParam") List<String> gidList) {
         return Results.success(shortLinkService.listGroupShortLinkCount(gidList));
+    }
+
+    /**
+     * 更新短链接
+     */
+    @PutMapping("/api/short-link/v1/update")
+    public Result<Void> updateShortLink(@RequestBody ShortLinkUpdateReqDTO requestParam) {
+        shortLinkService.updateShortLink(requestParam);
+        return Results.success();
     }
 }

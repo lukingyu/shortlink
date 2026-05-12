@@ -4,12 +4,15 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.text.StrBuilder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkPageReqDTO;
+import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkUpdateReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkPageRespDTO;
+import github.lukingyu.shortlink.base.entity.enums.VailDateTypeEnum;
 import github.lukingyu.shortlink.base.entity.exception.ServiceException;
 import github.lukingyu.shortlink.base.entity.table.ShortLinkDO;
 import github.lukingyu.shortlink.base.tool.HashUtil;
@@ -22,6 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RBloomFilter;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -111,5 +116,23 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 .groupBy("gid");
         List<Map<String, Object>> shortLinkDOList = baseMapper.selectMaps(queryWrapper);
         return BeanUtil.copyToList(shortLinkDOList, ShortLinkGroupCountQueryRespDTO.class);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
+    @Override
+    public void updateShortLink(ShortLinkUpdateReqDTO requestParam) {
+
+        LambdaUpdateWrapper<ShortLinkDO> updateWrapper = new LambdaUpdateWrapper<ShortLinkDO>()
+                .set(ShortLinkDO::getOriginUrl, requestParam.getOriginUrl())
+                .set(ShortLinkDO::getGid, requestParam.getGid())
+                .set(ShortLinkDO::getValidDateType, requestParam.getValidDateType())
+                .set(ShortLinkDO::getValidDate, Integer.valueOf(VailDateTypeEnum.PERMANENT.getType()).equals(requestParam.getValidDateType()) ? null : requestParam.getValidDate())
+                .set(ShortLinkDO::getDescribe, requestParam.getDescribe())
+                .eq(ShortLinkDO::getGid, requestParam.getGid())
+                .eq(ShortLinkDO::getFullShortUrl, requestParam.getFullShortUrl())
+                .eq(ShortLinkDO::getDelFlag, 0);
+
+        update(updateWrapper);
+
     }
 }
