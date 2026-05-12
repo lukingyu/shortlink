@@ -221,18 +221,18 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                     .eq(ShortLinkDO::getDelFlag, 0)
                     .eq(ShortLinkDO::getEnableStatus, 0);
             ShortLinkDO shortLinkDO = baseMapper.selectOne(queryWrapper);
-            if (shortLinkDO != null) {
-                // 如果已经过期，缓存空值
-                if (shortLinkDO.getValidDate() != null && shortLinkDO.getValidDate().before(new Date())) {
-                    stringRedisTemplate.opsForValue().set(String.format(RedisCacheConstant.SHORT_LINK_NULL_GOTO_KEY, fullShortUrl), "-", 3, TimeUnit.MINUTES);
-                    redirectNotFound(response);
-                    return;
-                }
-                // 将跳转关系 放入缓存
-                stringRedisTemplate.opsForValue().set(String.format(RedisCacheConstant.SHORT_LINK_GOTO_KEY, fullShortUrl), shortLinkDO.getOriginUrl(), LinkUtil.getRestMilliSeconds(shortLinkDO.getValidDate()), TimeUnit.MILLISECONDS);
-                // 重定向
-                ((HttpServletResponse) response).sendRedirect(shortLinkDO.getOriginUrl());
+
+            // 如果压根没创建这个短链接、如果已经过期，缓存空值
+            if (shortLinkDO == null || (shortLinkDO.getValidDate() != null && shortLinkDO.getValidDate().before(new Date()))) {
+                stringRedisTemplate.opsForValue().set(String.format(RedisCacheConstant.SHORT_LINK_NULL_GOTO_KEY, fullShortUrl), "-", 3, TimeUnit.MINUTES);
+                redirectNotFound(response);
+                return;
             }
+            // 将跳转关系 放入缓存
+            stringRedisTemplate.opsForValue().set(String.format(RedisCacheConstant.SHORT_LINK_GOTO_KEY, fullShortUrl), shortLinkDO.getOriginUrl(), LinkUtil.getRestMilliSeconds(shortLinkDO.getValidDate()), TimeUnit.MILLISECONDS);
+            // 重定向
+            ((HttpServletResponse) response).sendRedirect(shortLinkDO.getOriginUrl());
+
         } finally {
             lock.unlock();
         }
