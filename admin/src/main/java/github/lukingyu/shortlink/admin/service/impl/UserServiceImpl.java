@@ -18,6 +18,7 @@ import github.lukingyu.shortlink.base.entity.enums.UserErrorCodeEnum;
 import github.lukingyu.shortlink.base.entity.exception.ClientException;
 import github.lukingyu.shortlink.base.entity.exception.ServiceException;
 import github.lukingyu.shortlink.base.entity.table.UserDO;
+import github.lukingyu.shortlink.base.mvc.service.GroupService;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RLock;
@@ -37,6 +38,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     private final RBloomFilter<String> userRegisterCachePenetrationBloomFilter;
     private final RedissonClient redissonClient;
     private final StringRedisTemplate stringRedisTemplate;
+    private final GroupService groupService;
 
     @Override
     public UserRespDTO getUserByUsername(String username) {
@@ -81,6 +83,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
                 }
                 // 数据库插入成功，向布隆过滤器记录此用户名
                 userRegisterCachePenetrationBloomFilter.add(requestParam.getUsername());
+                // 创建用户的默认分组
+                groupService.saveGroup(requestParam.getUsername(), "默认分组");
             } else {
                 // 获取锁失败，说明有其他线程正在注册此用户名，抛出异常
                 throw new ClientException(UserErrorCodeEnum.USER_NAME_EXIST);
