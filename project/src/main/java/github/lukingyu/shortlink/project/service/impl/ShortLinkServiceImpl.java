@@ -186,11 +186,13 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         // 利用布隆过滤器，判断该短链接 是否创建过，不存在则直接返回，100%准确
         boolean contains = shortUriCreateCachePenetrationBloomFilter.contains(fullShortUrl);
         if (!contains) {
+            redirectNotFound(response);
             return;
         }
         // 不存在跳转关系的短链接，缓存空值，防止恶意请求一直请求
         String gotoIsNullShortLink = stringRedisTemplate.opsForValue().get(String.format(RedisCacheConstant.SHORT_LINK_NULL_GOTO_KEY, fullShortUrl));
         if (StrUtil.isNotBlank(gotoIsNullShortLink)) {
+            redirectNotFound(response);
             return;
         }
 
@@ -210,6 +212,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             if (shortLinkGotoDO == null) {
                 // 不存在跳转关系，先缓存空值，防止后续一直请求
                 stringRedisTemplate.opsForValue().set(String.format(RedisCacheConstant.SHORT_LINK_NULL_GOTO_KEY, fullShortUrl), "-", 3, TimeUnit.MINUTES);
+                redirectNotFound(response);
                 return;
             }
             LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class)
@@ -222,6 +225,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 // 如果已经过期，缓存空值
                 if (shortLinkDO.getValidDate() != null && shortLinkDO.getValidDate().before(new Date())) {
                     stringRedisTemplate.opsForValue().set(String.format(RedisCacheConstant.SHORT_LINK_NULL_GOTO_KEY, fullShortUrl), "-", 3, TimeUnit.MINUTES);
+                    redirectNotFound(response);
                     return;
                 }
                 // 将跳转关系 放入缓存
@@ -232,5 +236,9 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         } finally {
             lock.unlock();
         }
+    }
+
+    protected void redirectNotFound(ServletResponse response) throws IOException {
+        ((HttpServletResponse) response).sendRedirect("/page/notfound");
     }
 }
