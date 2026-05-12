@@ -16,8 +16,10 @@ import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkGroupCountQueryRe
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkPageRespDTO;
 import github.lukingyu.shortlink.base.entity.enums.VailDateTypeEnum;
 import github.lukingyu.shortlink.base.entity.exception.ServiceException;
+import github.lukingyu.shortlink.base.entity.table.LinkAccessStatsDO;
 import github.lukingyu.shortlink.base.entity.table.ShortLinkDO;
 import github.lukingyu.shortlink.base.entity.table.ShortLinkGotoDO;
+import github.lukingyu.shortlink.base.mvc.mapper.LinkAccessStatsMapper;
 import github.lukingyu.shortlink.base.tool.HashUtil;
 import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkCreateReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkCreateRespDTO;
@@ -44,6 +46,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +62,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     private final ShortLinkGotoMapper shortLinkGotoMapper;
     private final StringRedisTemplate stringRedisTemplate;
     private final RedissonClient redissonClient;
+    private final LinkAccessStatsMapper linkAccessStatsMapper;
 
     @Override
     public ShortLinkCreateRespDTO createShortLink(ShortLinkCreateReqDTO requestParam) {
@@ -184,6 +189,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         // 缓存中存在该短链接的真实跳转关系，则直接跳转至原始url
         String originalUrl = stringRedisTemplate.opsForValue().get(String.format(RedisCacheConstant.SHORT_LINK_GOTO_KEY, fullShortUrl));
         if (StrUtil.isNotBlank(originalUrl)) {
+            shortLinkStats(fullShortUrl, null);
             ((HttpServletResponse) response).sendRedirect(originalUrl);
             return;
         }
@@ -208,6 +214,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             // 拿到锁，二次查询缓存，存在跳转关系则直接跳转。
             String originalUrl2 = stringRedisTemplate.opsForValue().get(String.format(RedisCacheConstant.SHORT_LINK_GOTO_KEY, fullShortUrl));
             if (StrUtil.isNotBlank(originalUrl2)) {
+                shortLinkStats(fullShortUrl, null);
                 ((HttpServletResponse) response).sendRedirect(originalUrl2);
                 return;
             }
@@ -236,6 +243,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             // 将跳转关系 放入缓存
             stringRedisTemplate.opsForValue().set(String.format(RedisCacheConstant.SHORT_LINK_GOTO_KEY, fullShortUrl), shortLinkDO.getOriginUrl(), LinkUtil.getRestMilliSeconds(shortLinkDO.getValidDate()), TimeUnit.MILLISECONDS);
             // 重定向
+            shortLinkStats(fullShortUrl, null);
             ((HttpServletResponse) response).sendRedirect(shortLinkDO.getOriginUrl());
 
         } finally {
@@ -260,6 +268,34 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             return URI.create(url).resolve("/favicon.ico").toString();
         } catch (IOException e) {
             return null;
+        }
+    }
+
+    private void shortLinkStats(String fullShortUrl, String gid) {
+
+        try {
+            if (StrUtil.isBlank(gid)) {
+                LambdaQueryWrapper<ShortLinkGotoDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkGotoDO.class)
+                        .eq(ShortLinkGotoDO::getFullShortUrl, fullShortUrl);
+                ShortLinkGotoDO shortLinkGotoDO = shortLinkGotoMapper.selectOne(queryWrapper);
+                gid = shortLinkGotoDO.getGid();
+            }
+            LocalDateTime now = LocalDateTime.now();
+            int hour = now.getHour();
+            int weekValue = now.getDayOfWeek().getValue();
+            LinkAccessStatsDO linkAccessStatsDO = LinkAccessStatsDO.builder()
+                    .pv(1)
+                    .uv(1)
+                    .uip(1)
+                    .hour(hour)
+                    .weekday(weekValue)
+                    .fullShortUrl(fullShortUrl)
+                    .gid(gid)
+                    .date(Date.from(now.toInstant(ZoneOffset.ofHours(8))))
+                    .build();
+            linkAccessStatsMapper.shortLinkStats(linkAccessStatsDO);
+        } catch (Throwable ex) {
+            log.error("短链接访问量统计异常", ex);
         }
     }
 }
