@@ -2,7 +2,7 @@ package github.lukingyu.shortlink.project.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import github.lukingyu.shortlink.base.entity.dto.req.RecycleBinSaveReqDTO;
-import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkPageReqDTO;
+import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkRecycleBinPageReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkPageRespDTO;
 import github.lukingyu.shortlink.base.entity.result.Result;
 import github.lukingyu.shortlink.base.entity.result.Results;
@@ -32,7 +32,7 @@ public class RecycleBinController {
      * 分页查询回收站短链接
      */
     @GetMapping("/api/short-link/v1/recycle-bin/page")
-    public Result<IPage<ShortLinkPageRespDTO>> pageShortLink(ShortLinkPageReqDTO requestParam) {
+    public Result<IPage<ShortLinkPageRespDTO>> pageShortLink(ShortLinkRecycleBinPageReqDTO requestParam) {
         return Results.success(recycleBinService.pageShortLink(requestParam));
     }
 }

@@ -4,10 +4,7 @@ import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import github.lukingyu.shortlink.base.entity.dto.req.RecycleBinSaveReqDTO;
-import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkCreateReqDTO;
-import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkPageReqDTO;
-import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkUpdateReqDTO;
+import github.lukingyu.shortlink.base.entity.dto.req.*;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkCreateRespDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkPageRespDTO;
@@ -100,9 +97,9 @@ public interface ShortLinkRemoteService {
      * @param requestParam 分页短链接请求参数
      * @return 查询短链接响应
      */
-    default Result<IPage<ShortLinkPageRespDTO>> pageRecycleBinShortLink(ShortLinkPageReqDTO requestParam) {
+    default Result<IPage<ShortLinkPageRespDTO>> pageRecycleBinShortLink(ShortLinkRecycleBinPageReqDTO requestParam) {
         Map<String, Object> requestMap = new HashMap<>();
-        requestMap.put("gid", requestParam.getGid());
+        requestMap.put("gidList", requestParam.getGidList());
         requestMap.put("current", requestParam.getCurrent());
         requestMap.put("size", requestParam.getSize());
         String resultPageStr = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/recycle-bin/page", requestMap);

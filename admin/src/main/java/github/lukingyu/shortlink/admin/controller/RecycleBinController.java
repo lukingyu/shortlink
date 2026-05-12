@@ -1,8 +1,9 @@
 package github.lukingyu.shortlink.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import github.lukingyu.shortlink.admin.service.RecycleBinService;
 import github.lukingyu.shortlink.base.entity.dto.req.RecycleBinSaveReqDTO;
-import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkPageReqDTO;
+import github.lukingyu.shortlink.base.entity.dto.req.ShortLinkRecycleBinPageReqDTO;
 import github.lukingyu.shortlink.base.entity.dto.resp.ShortLinkPageRespDTO;
 import github.lukingyu.shortlink.base.entity.result.Result;
 import github.lukingyu.shortlink.base.entity.result.Results;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class RecycleBinController {
 
+    private final RecycleBinService recycleBinService;
+
     /**
      * 后续重构为 SpringCloud Feign 调用
      */
@@ -26,7 +29,7 @@ public class RecycleBinController {
     /**
      * 保存回收站
      */
-    @PostMapping("/api/short-link/v1/recycle-bin/save")
+    @PostMapping("/api/short-link/admin/v1/recycle-bin/save")
     public Result<Void> saveRecycleBin(@RequestBody RecycleBinSaveReqDTO requestParam) {
         shortLinkRemoteService.saveRecycleBin(requestParam);
         return Results.success();
@@ -36,7 +39,7 @@ public class RecycleBinController {
      * 分页查询回收站短链接
      */
     @GetMapping("/api/short-link/admin/v1/recycle-bin/page")
-    public Result<IPage<ShortLinkPageRespDTO>> pageShortLink(ShortLinkPageReqDTO requestParam) {
-        return shortLinkRemoteService.pageRecycleBinShortLink(requestParam);
+    public Result<IPage<ShortLinkPageRespDTO>> pageShortLink(ShortLinkRecycleBinPageReqDTO requestParam) {
+        return recycleBinService.pageRecycleBinShortLink(requestParam);
     }
 }
